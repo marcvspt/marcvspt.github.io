@@ -298,7 +298,7 @@ message getInfoResponse {
 }
 ```
 
-Es necesario crear las dependencias; en forma de scripts y clases de python, de donde se extraerán los métodos del servicio **gRPC**. Esto se hace apartir del `simpleapp.proto`.
+Es necesario crear las dependencias; en forma de scripts y clases de **Python**, de donde se extraerán los métodos del servicio **gRPC**. Esto se hace apartir del `simpleapp.proto`.
 
 ```bash
 $ python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. simpleapp.proto
