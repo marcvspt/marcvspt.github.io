@@ -108,32 +108,26 @@ También nos comparte una clave pública PGP **"Practice by importing our public
 En **linux** para usar este mecanismo de cifrado tenemos [GnuPG](https://gnupg.org/index.html). Para este CTF necesitaremos hacer muchas pruebas antes de continuar y `gpg` nos exporta todas las claves que usemos ya sean publicas o privadas a nuestro peril GnuPG, por lo que desarrollé una **Suite** de herramientas hechas con **Python3** llamada [pgp-pysuite](https://github.com/marcvspt/pgp-pysuite).
 
 ```bash
-$ python3 keygen.py -h
-usage: keygen.py [-h] -p PASSPHRASE -n NAME -e EMAIL [-b BASE_NAME] [--bits BITS]
+$ python3 pgpysuite.py -h
+usage: pgpysuite.py [-h] {generate,encrypt,decrypt,sign,verify} ...
 
-PGP Key pair RSA generator
+PGP Python suite
+
+positional arguments:
+    {generate,encrypt,decrypt,sign,verify}
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -p PASSPHRASE, --passphrase PASSPHRASE
-                        Password for the private key
-  -n NAME, --name NAME  User real name
-  -e EMAIL, --email EMAIL
-                        User e-mail
-  -b BASE_NAME, --base-name BASE_NAME
-                        Base name for the keys
-  --bits BITS           Key length in bits
+    -h, --help          show this help message and exit
 ```
 Creamos un par de **claves PGP** y probamos algunas funciones de la página creando lo que nos pidan.
 
 ```bash
-$ python3 keygen.py -p password123 -n marcvs -e marcvs@ssa.htb
+$ python3 pgpysuite.py generate -p password123 -n marcvs -e marcvs@ssa.htb
 
 [+] Keys generated successfully
 
 $ ls
-decrypt.py  keygen.py           keypgp_uwu.pub.asc  requeriments.txt  verify.py
-encrypt.py  keypgp_uwu.key.asc  README.md           sign.py
+key_pgp.key.asc  key_pgp.pub.asc  pgpysuite.py
 ```
 
 Hay algo curioso y llamativo en una función de la página. Cuando verificamos la firma de un mensaje usando nuestra llave **pública PGP** nos muestra nuestro nombre.
@@ -155,7 +149,7 @@ Primero creamos el par de claves injectando un **SSTI** básico para `flask-jinj
 
 Firmamos cualquier mensaje:
 ```bash
-$ python3 sign.py -c ssti-tests.pub.asc -k ssti-tests.key.asc -p password123 -m "Hola mundo"
+$ python3 pgpysuite.py sign -c ssti-tests.pub.asc -k ssti-tests.key.asc -p password123 -m "Hola mundo"
 
 [+] Message signed successfully
 
