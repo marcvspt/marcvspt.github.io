@@ -78,7 +78,7 @@ ping: ssa.htb: Nombre o servicio desconocido
 Al ser un CTF lo mejor es editar el archivo `/etc/hosts` e incluir este nombre `10.10.11.218  ssa.htb`. Ahora vemos que ya sabe a donde apuntar, esto es util ya que es necesario para ver la página web.
 
 ```bash
-ping -c 1 ssa.htb
+$ ping -c 1 ssa.htb
 PING ssa.htb (10.10.11.218) 56(84) bytes of data.
 64 bytes from ssa.htb (10.10.11.218): icmp_seq=1 ttl=63 time=80.6 ms
 
@@ -577,7 +577,7 @@ pub fn log(user: &str, query: &str, justification: &str) {
 Debemos esperar a que se compile el binario `/opt/tipnet/target/debug/tipnet` para recibir la shell. Es posible que no funcione a la primera porque la máquina restaura los archivos.
 
 ```bash
-nc -nlvp 443
+$ nc -nlvp 443
 Ncat: Version 7.92 ( https://nmap.org/ncat )
 Ncat: Listening on :::443
 Ncat: Listening on 0.0.0.0:443
@@ -623,7 +623,6 @@ Child process initialized in 6.76 ms
 atlas@sandworm:~$ su -
 root@sandworm:~# id
 uid=0(root) gid=0(root) groups=0(root)
-
 root@sandworm:~# cat root.txt
 e48**************************655
 ```
